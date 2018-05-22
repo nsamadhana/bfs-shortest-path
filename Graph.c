@@ -40,7 +40,7 @@ Graph newGraph(int n){
 
 void freeGraph(Graph* pG){//Frees memory associated with a graph
   int i;
-  for(i=0; i<(*pG)->order+1;i++){
+  for(i=1; i<(*pG)->order+1;i++){
     if(i==0){
       free((*pG)->neighbour[0]);
     }else{
@@ -76,7 +76,7 @@ int getSize(Graph G){
 
 //Returns the source
 int getSource(Graph G){
-  if(getSource(G)==0){
+  if(G->label==0){
     return NIL;
   }else{
     return(G->label);
@@ -85,7 +85,7 @@ int getSource(Graph G){
 
 //Returns parent of a vertex
 int getParent(Graph G, int u){
-  if(getSource(G)==0){
+  if(getSource(G)==NIL){
     return NIL;
   }else{
     return(G->parent[u]);
@@ -124,61 +124,69 @@ void printPath(Graph G, List L, int s, int x){
 void addEdge(Graph G, int u, int v){
   List A = G->neighbour[u];
   List B = G->neighbour[v];
-  if(length(A)==0){ //If the adjacency list of u is empty, just append v
+
+  if(length(A)==0){ //If there is nothing in A, just add v
     append(A,v);
-    G->size++;
   }else{
-    moveFront(A); //Place the cursor at the front of the list
+    moveFront(A);
     int val = get(A);
     while(index(A)!=-1){
       if(v<val){
         insertBefore(A,v);
         G->size++;
-      }else if(val == back(A)){ //If at the back, just append it
-        append(A,v);
+        break;
+      }
+      if(v>val){
+        append(A, v);
         G->size++;
+        break;
       }
       moveNext(A);
       val = get(A);
     }
   }
-  //Check the same conditions on the array of lists for v
-  if(length(B)==0){ //If the adjacency list of u is empty, just append v
+  //Perform the same things for the second list
+  if(length(B)==0){ //If there is nothing in A, just add v
     append(B,u);
-    G->size++;
   }else{
-    moveFront(B); //Place the cursor at the front of the list
+    moveFront(B); //Places cursor at the Front
     int val = get(B);
-    while(index(B)!=-1){ //
+    while(index(B)!=-1){
       if(u<val){
         insertBefore(B,u);
         G->size++;
-      }else if(val == back(B)){
-        append(B,u);
-        G->size++;
+        break;
       }
-      moveNext(B); //Move to next cursor value
-      val = get(B); //Retrieve the cursor data
+      if(u>val){
+        append(B, u);
+        G->size++;
+        break;
+      }
+      moveNext(B);
+      val = get(B);
     }
   }
+
 }
 
 //Adds a directed edge from u to v
 void addArc(Graph G, int u, int v){
   List A = G->neighbour[u];
-  if(length(A)==0){ //If the adjacency list of u is empty, just append v
+  if(length(A)==0){ //If there is nothing in A, just add v
     append(A,v);
-    G->size++;
   }else{
-    moveFront(A); //Place the cursor at the front of the list
+    moveFront(A);
     int val = get(A);
     while(index(A)!=-1){
       if(v<val){
         insertBefore(A,v);
         G->size++;
-      }else if(val == back(A)){ //If at the back, just append it
-        append(A,v);
+        break;
+      }
+      if(v>val){
+        append(A, v);
         G->size++;
+        break;
       }
       moveNext(A);
       val = get(A);
@@ -189,22 +197,27 @@ void addArc(Graph G, int u, int v){
 //Performs breadth first search on a graph
 void BFS(Graph G, int s){
   List queue = newList();
+  for(int x=1;x<G->order+1;x++){ //Initialization/Populating cells
+    G->color[x]=0;
+    G->parent[x]=NIL;
+    G->distance[x]=INF;
+  }
   G->label = s; //Set the source
   G->color[s] = 1; //Color source as gray
   G->distance[s] = 0; //Set distance from root to source as 0
   append(queue,s); //Push source onto queue
 
-  while(length(queue)!=0){
+  while(length(queue)>0){
     int temp = front(queue); //Get the value at the front of the queue first before dequeing
     deleteFront(queue);
     moveFront(G->neighbour[temp]);
-    for(int i=0;i<length(G->neighbour[temp]);i++ ){
+    for(int i=0;i<length(G->neighbour[temp]);i++){
       int adj = get(G->neighbour[temp]);
       if(G->color[adj]==0){ //If adjacent vertex is white/undiscovered
         G->color[adj]=1; //Set to gray
         G->distance[adj] = G->distance[temp]+1; //Set the distance to parents distance plus 1
         G->parent[adj] = temp; //Set the parent
-        prepend(queue,adj); //Push the item onto the queue
+        append(queue,adj); //Push the item onto the queue
       }
       moveNext(G->neighbour[temp]); //Move to the next adjacent item
     }
@@ -213,9 +226,17 @@ void BFS(Graph G, int s){
   freeList(&queue); //Free up space of the associated queue
 }
 
-// void makeNull(Graph G){
-//   for(int i=1;)
-// }
+//Resets a graph to its original empty state
+void makeNull(Graph G){
+  for(int i=1;i<G->order+1;i++){
+    clear(G->neighbour[i]);
+    G->color[i] = 0;
+    G->parent[i] = NIL;
+    G->distance[i] = INF;
+  }
+  G->size = 0;
+  G->label = 0;
+}
 
 //Prints out the graph
 void printGraph(FILE* out, Graph G){
