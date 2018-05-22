@@ -58,13 +58,12 @@ void freeNode(Node* pointer){
 }
 
 void freeList(List* pointer){
-  if(pointer!=NULL && *pointer!=NULL){
-    if (length(*pointer)!=0){
-        clear(*pointer);
-    }
-    free(*pointer);
-    *pointer=NULL;
+  int i;
+  int x = length(*pointer);
+  for(i=0;i<x;i++){
+    deleteBack(*pointer);
   }
+  free(*pointer);
 }
 
 //length returns the amount of elements in the list
