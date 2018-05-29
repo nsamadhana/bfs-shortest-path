@@ -85,113 +85,104 @@ int getSource(Graph G){
 
 //Returns parent of a vertex
 int getParent(Graph G, int u){
-  if(getSource(G)==NIL){
-    return NIL;
+  if(1>u || u>getOrder(G)){ //Checks preconditions
+    printf("getParent() called with invalid argument");
+    exit(1);
   }else{
-    return(G->parent[u]);
+    if(getSource(G)==NIL){
+      return NIL;
+    }else{
+      return(G->parent[u]);
+    }
   }
 }
 
 //Returns distance from the source to vertex
 int getDist(Graph G, int u){
-  if(getSource(G)==0){
-    return INF;
+  if(1>u || u>getOrder(G)){//Checks preconditions
+    printf("getDist() called with invalid argument");
+    exit(1);
   }else{
-    return(G->distance[u]);
+    if(getSource(G)==0){
+      return INF;
+    }else{
+      return(G->distance[u]);
+    }
   }
 }
 
 //Returns the shortest path from the source to vertex u
 void getPath(List L, Graph G, int u){ //Employs same recursive logic as printPath()
-  int source = G->label;
-  printPath(G,L,source,u);
-}
-
-//Helper method for getPath
-void printPath(Graph G, List L, int s, int x){
-  if(x==s){
-    append(L,s);
-  }else if(G->parent[x]==NIL){ //No path exists
-    printf("No s-x path exists");
-    return;
+  if(getSource(G)!=NIL && 1<=u && u<=getOrder(G)){
+    if(G->label==u){ //If at the source, append the source and finish/BASE CASE
+      append(L,u);
+    }else if(G->parent[u]==NIL){ //If no parent exists
+      append(L,NIL);
+    }else{
+      getPath(L,G,getParent(G,u)); //If a parent exists, and parent is not the source, recursive call to getPath
+      append(L,u);
+    }
   }else{
-    printPath(G,L,s,G->parent[x]);
-    append(L,G->parent[x]);
+    printf("getPath() called with either invalid graph or vertex");
+    exit(1);
   }
 }
+
 
 //Manipulation processes--------------
 void addEdge(Graph G, int u, int v){
-  List A = G->neighbour[u];
+  if(u<1 || u>getOrder(G) || v<1|| v>getOrder(G)){//Check preconditions
+    printf("Calling addEdge() with invalid vertices.");
+    return;
+  }
+  List A = G->neighbour[u]; //
   List B = G->neighbour[v];
-
-  if(length(A)==0){ //If there is nothing in A, just add v
-    append(A,v);
-  }else{
-    moveFront(A);
-    int val = get(A);
-    while(index(A)!=-1){
-      if(v<val){
-        insertBefore(A,v);
-        G->size++;
-        break;
-      }
-      if(v>val){
-        append(A, v);
-        G->size++;
-        break;
-      }
-      moveNext(A);
-      val = get(A);
+  moveFront(A); //Place the cursor at the front
+  for(int i=0;i<=length(A);i++){ //Iterate through each adjacent neighbour contained in the list
+    if(index(A)==-1){ //If at the end of the list or list is empty, append
+      append(A,v);
+      break;
+    }else if(get(A)>v){ //If the neighbour is larger, insert before
+      insertBefore(A,v);
+      break;
     }
-  }
-  //Perform the same things for the second list
-  if(length(B)==0){ //If there is nothing in A, just add v
-    append(B,u);
-  }else{
-    moveFront(B); //Places cursor at the Front
-    int val = get(B);
-    while(index(B)!=-1){
-      if(u<val){
-        insertBefore(B,u);
-        G->size++;
-        break;
-      }
-      if(u>val){
-        append(B, u);
-        G->size++;
-        break;
-      }
-      moveNext(B);
-      val = get(B);
-    }
+    moveNext(A); //Move to the next neighbour
   }
 
+  moveFront(B); //Perform the exact same algorithm for B
+  for(int i=0;i<=length(B);i++){
+    if(index(B)==-1){
+      append(B,u);
+      break;
+    }else if(get(B)>u){
+      insertBefore(B,u);
+      break;
+    }
+    moveNext(B);
+  }
+  G->size++;
 }
 
 //Adds a directed edge from u to v
 void addArc(Graph G, int u, int v){
-  List A = G->neighbour[u];
-  if(length(A)==0){ //If there is nothing in A, just add v
-    append(A,v);
-  }else{
-    moveFront(A);
-    int val = get(A);
-    while(index(A)!=-1){
-      if(v<val){
-        insertBefore(A,v);
-        G->size++;
-        break;
-      }
-      if(v>val){
-        append(A, v);
-        G->size++;
-        break;
-      }
-      moveNext(A);
-      val = get(A);
-    }
+  if(u<1 || u>getOrder(G) || v<1|| v>getOrder(G)){ //Check preconditions
+    printf("Calling addEdge() with invalid vertices.");
+    return;
   }
+  List A = G->neighbour[u]; //Exact same code as addEdge(), but only on one side
+  moveFront(A);
+  for(int i=0;i<=length(A);i++){
+    if(index(A)==-1){
+      append(A,v);
+      break;
+    }else if(get(A)>v){
+      insertBefore(A,v);
+      break;
+    }
+    moveNext(A);
+  }
+  G->size++;
+
 }
 
 //Performs breadth first search on a graph
@@ -245,9 +236,9 @@ void printGraph(FILE* out, Graph G){
     return;
   }else{
     for(int i=1; i<G->order+1; i++){
-      printf("%d: ",i);
+      fprintf(out, "%d: ",i);
       printList(out, G->neighbour[i]);
-      printf("\n");
+      fprintf(out, "\n");
     }
   }
 }
